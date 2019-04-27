@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -59,6 +60,29 @@ public class MediaPlayerSurfaceViewActivity extends AppCompatActivity
         }
     }
 
+    private void adjustVideoSize() {
+        int surfaceWidth = mSurfaceView.getWidth();
+        int surfaceHeight = mSurfaceView.getHeight();
+        int videoWidth = mMediaPlayer.getVideoWidth();
+        int videoHeight = mMediaPlayer.getVideoHeight();
+        int displayWidth = 0, displayHeight = 0;
+
+        Log.d(TAG, "Adjust videoWidth:" + videoWidth + ", videoHeight:" + videoHeight + " to surfaceWidth:" + surfaceWidth + ", surfaceHeight:" + surfaceHeight);
+
+        float videoRatio = (float)videoWidth/videoHeight, surfaceRatio = (float)surfaceWidth/surfaceHeight;
+        if (videoRatio >= surfaceRatio) {
+            displayWidth = surfaceWidth;
+            displayHeight = (int) (displayWidth/videoRatio);
+        } else {
+            displayHeight = surfaceHeight;
+            displayWidth = (int) (displayHeight * videoRatio);
+        }
+
+        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(displayWidth, displayHeight);
+        mSurfaceView.setLayoutParams(params);
+
+    }
+
     private void chooseVideoFile() {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
@@ -85,6 +109,7 @@ public class MediaPlayerSurfaceViewActivity extends AppCompatActivity
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
+                    adjustVideoSize();
                     mMediaPlayer.start();
                 }
             });

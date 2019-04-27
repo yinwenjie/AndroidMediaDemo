@@ -4,13 +4,16 @@ import com.example.yinwenjie.androidmediademo.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.MediaController;
 
 import java.io.IOException;
@@ -18,13 +21,15 @@ import java.io.IOException;
 import utils.UriPath;
 
 public class MediaPlayerSurfaceViewActivity extends AppCompatActivity
-        implements SurfaceHolder.Callback {
+        implements SurfaceHolder.Callback, MediaController.MediaPlayerControl {
     private static final String TAG = "MediaPlayerSurfaceView";
 
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
     private MediaPlayer mMediaPlayer;
     private MediaController mMediaController;
+
+    private Handler mHandler = new Handler();
 
     private String mVideoFilePath;
 
@@ -43,18 +48,19 @@ public class MediaPlayerSurfaceViewActivity extends AppCompatActivity
             mVideoFilePath = UriPath.getPath(this, data.getData());
             Log.d(TAG, "Selected file:" + mVideoFilePath);
 
-            // Initializing critical instances...
-            mMediaPlayer = new MediaPlayer();
-            if (mMediaPlayer != null) {
-                mMediaPlayer.setLooping(true);
-            } else {
-                Log.e(TAG, "creating mMediaPlayer instance failed, exit.");
-                return;
-            }
-
             mSurfaceView = findViewById(R.id.video);
             mSurfaceHolder = mSurfaceView.getHolder();
             mSurfaceHolder.addCallback(this);
+
+            mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    if (mMediaController != null) {
+                        mMediaController.show();
+                    }
+                    return false;
+                }
+            });
 
             mMediaController = new MediaController(this);
         }
@@ -103,17 +109,40 @@ public class MediaPlayerSurfaceViewActivity extends AppCompatActivity
     // SurfaceHolder callback:
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        mMediaPlayer.setDisplay(mSurfaceHolder);
         try {
-            mMediaPlayer.setDataSource(mVideoFilePath);
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    adjustVideoSize();
-                    mMediaPlayer.start();
+            if (mMediaPlayer == null) {
+                // Initializing critical instances...
+                mMediaPlayer = new MediaPlayer();
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.setLooping(true);
+                } else {
+                    Log.e(TAG, "creating mMediaPlayer instance failed, exit.");
+                    return;
                 }
-            });
-            mMediaPlayer.prepare();
+
+                mMediaPlayer.setDataSource(mVideoFilePath);
+                mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mediaPlayer) {
+                        adjustVideoSize();
+                        mMediaPlayer.start();
+                    }
+                });
+                mMediaPlayer.prepare();
+
+                mMediaController.setMediaPlayer(this);
+                mMediaController.setAnchorView(mSurfaceView);
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMediaController.setEnabled(true);
+                        mMediaController.show();
+                    }
+                });
+            } else if (!mMediaPlayer.isPlaying()) {
+                mMediaPlayer.start();
+            }
+            mMediaPlayer.setDisplay(mSurfaceHolder);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -126,7 +155,62 @@ public class MediaPlayerSurfaceViewActivity extends AppCompatActivity
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+        mMediaPlayer.pause();
     }
 
+    // MediaController callback
+    @Override
+    public void start() {
+        mMediaPlayer.start();
+    }
+
+    @Override
+    public void pause() {
+        mMediaPlayer.pause();
+    }
+
+    @Override
+    public int getDuration() {
+        return mMediaPlayer.getDuration();
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return mMediaPlayer.getCurrentPosition();
+    }
+
+    @Override
+    public void seekTo(int i) {
+        mMediaPlayer.seekTo(i);
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mMediaPlayer.isPlaying();
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return mMediaPlayer.getAudioSessionId();
+    }
 }

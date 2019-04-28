@@ -29,6 +29,11 @@ public class MainActivity extends AppCompatActivity {
         getPermission();
     }
 
+    public void onClickImageDisplay(View v) {
+        Log.d(TAG, "VideoViewPlayer clicked. WRITE_EXTERNAL_STORAGE:" + mPermissionExternalStorageGranted);
+        goToActivity(ImageDisplay.class);
+    }
+
     public void onClickVideoViewPlayer(View v) {
         Log.d(TAG, "VideoViewPlayer clicked. WRITE_EXTERNAL_STORAGE:" + mPermissionExternalStorageGranted);
         goToActivity(VideoViewPlayerActivity.class);

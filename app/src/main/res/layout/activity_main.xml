@@ -8,6 +8,13 @@
     tools:context=".activity.MainActivity">
 
     <Button
+        android:id="@+id/image_display_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClickImageDisplay"
+        android:text="ImageView 显示图片"/>
+
+    <Button
         android:id="@+id/video_view_player_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

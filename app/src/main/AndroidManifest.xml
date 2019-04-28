@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.yinwenjie.androidmediademo">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -19,7 +20,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.VideoViewPlayerActivity" />
-        <activity android:name=".activity.MediaPlayerSurfaceViewActivity"></activity>
+        <activity android:name=".activity.MediaPlayerSurfaceViewActivity" />
+        <activity android:name=".activity.ImageDisplay"></activity>
     </application>
 
 </manifest>
